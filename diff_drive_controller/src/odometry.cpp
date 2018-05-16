@@ -57,6 +57,7 @@ namespace diff_drive_controller
   , wheel_separation_(0.0)
   , left_wheel_radius_(0.0)
   , right_wheel_radius_(0.0)
+  , slip_coefficient_(0.0)
   , left_wheel_old_pos_(0.0)
   , right_wheel_old_pos_(0.0)
   , velocity_rolling_window_size_(velocity_rolling_window_size)
@@ -89,7 +90,7 @@ namespace diff_drive_controller
 
     /// Compute linear and angular diff:
     const double linear  = (right_wheel_est_vel + left_wheel_est_vel) * 0.5 ;
-    const double angular = (right_wheel_est_vel - left_wheel_est_vel) / wheel_separation_;
+    const double angular = ((right_wheel_est_vel - left_wheel_est_vel) / wheel_separation_) - slip_coefficient_ * linear;
 
     /// Integrate odometry:
     integrate_fun_(linear, angular);
@@ -123,11 +124,12 @@ namespace diff_drive_controller
     integrate_fun_(linear * dt, angular * dt);
   }
 
-  void Odometry::setWheelParams(double wheel_separation, double left_wheel_radius, double right_wheel_radius)
+  void Odometry::setWheelParams(double wheel_separation, double left_wheel_radius, double right_wheel_radius, double slip_coefficient)
   {
     wheel_separation_   = wheel_separation;
     left_wheel_radius_  = left_wheel_radius;
     right_wheel_radius_ = right_wheel_radius;
+    slip_coefficient_   = slip_coefficient;
   }
 
   void Odometry::setVelocityRollingWindowSize(size_t velocity_rolling_window_size)

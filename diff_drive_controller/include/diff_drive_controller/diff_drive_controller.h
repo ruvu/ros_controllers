@@ -137,6 +137,9 @@ namespace diff_drive_controller{
     /// Wheel radius (assuming it's the same for the left and right wheels):
     double wheel_radius_;
 
+    /// Slip coefficient, in case of a skid drive, the coefficient used to correct the angular velocity:
+    double slip_coefficient_;
+
     /// Wheel separation and radius calibration multipliers:
     double wheel_separation_multiplier_;
     double left_wheel_radius_multiplier_;
@@ -178,6 +181,7 @@ namespace diff_drive_controller{
       double left_wheel_radius_multiplier;
       double right_wheel_radius_multiplier;
       double wheel_separation_multiplier;
+      double slip_coefficient;
 
       bool publish_cmd;
 
@@ -188,6 +192,7 @@ namespace diff_drive_controller{
         : left_wheel_radius_multiplier(1.0)
         , right_wheel_radius_multiplier(1.0)
         , wheel_separation_multiplier(1.0)
+        , slip_coefficient(0.0)
         , publish_cmd(false)
         , publish_rate(50)
         , enable_odom_tf(true)
@@ -201,6 +206,7 @@ namespace diff_drive_controller{
            << "\t\tleft wheel radius: "   << params.left_wheel_radius_multiplier  << "\n"
            << "\t\tright wheel radius: "  << params.right_wheel_radius_multiplier << "\n"
            << "\t\twheel separation: "    << params.wheel_separation_multiplier   << "\n"
+           << "\t\tslip coefficient: "    << params.slip_coefficient              << "\n"
            //
            << "\tPublication parameters:\n"
            << "\t\tPublish executed velocity command: " << params.publish_cmd << "\n"

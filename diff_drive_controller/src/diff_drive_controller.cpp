@@ -154,6 +154,7 @@ namespace diff_drive_controller{
     , command_struct_()
     , wheel_separation_(0.0)
     , wheel_radius_(0.0)
+    , slip_coefficient_(0.0)
     , wheel_separation_multiplier_(1.0)
     , left_wheel_radius_multiplier_(1.0)
     , right_wheel_radius_multiplier_(1.0)
@@ -230,6 +231,10 @@ namespace diff_drive_controller{
     ROS_INFO_STREAM_NAMED(name_, "Right wheel radius will be multiplied by "
                           << right_wheel_radius_multiplier_ << ".");
 
+    controller_nh.param("slip_coefficient", slip_coefficient_, slip_coefficient_);
+    ROS_INFO_STREAM_NAMED(name_, "Slip coefficient is "
+                          << slip_coefficient_ << ".");
+
     int velocity_rolling_window_size = 10;
     controller_nh.param("velocity_rolling_window_size", velocity_rolling_window_size, velocity_rolling_window_size);
     ROS_INFO_STREAM_NAMED(name_, "Velocity rolling window size of "
@@ -297,7 +302,7 @@ namespace diff_drive_controller{
     const double ws  = wheel_separation_multiplier_   * wheel_separation_;
     const double lwr = left_wheel_radius_multiplier_  * wheel_radius_;
     const double rwr = right_wheel_radius_multiplier_ * wheel_radius_;
-    odometry_.setWheelParams(ws, lwr, rwr);
+    odometry_.setWheelParams(ws, lwr, rwr, slip_coefficient_);
     ROS_INFO_STREAM_NAMED(name_,
                           "Odometry params : wheel separation " << ws
                           << ", left wheel radius "  << lwr
@@ -327,6 +332,7 @@ namespace diff_drive_controller{
     dynamic_params.left_wheel_radius_multiplier  = left_wheel_radius_multiplier_;
     dynamic_params.right_wheel_radius_multiplier = right_wheel_radius_multiplier_;
     dynamic_params.wheel_separation_multiplier   = wheel_separation_multiplier_;
+    dynamic_params.slip_coefficient              = slip_coefficient_;
 
     dynamic_params.publish_rate = publish_rate;
     dynamic_params.enable_odom_tf = enable_odom_tf_;
@@ -359,7 +365,7 @@ namespace diff_drive_controller{
     const double lwr = left_wheel_radius_multiplier_  * wheel_radius_;
     const double rwr = right_wheel_radius_multiplier_ * wheel_radius_;
 
-    odometry_.setWheelParams(ws, lwr, rwr);
+    odometry_.setWheelParams(ws, lwr, rwr, slip_coefficient_);
 
     // COMPUTE AND PUBLISH ODOMETRY
     if (open_loop_)
@@ -450,8 +456,9 @@ namespace diff_drive_controller{
     }
 
     // Compute wheels velocities:
-    const double vel_left  = (curr_cmd.lin - curr_cmd.ang * ws / 2.0)/lwr;
-    const double vel_right = (curr_cmd.lin + curr_cmd.ang * ws / 2.0)/rwr;
+    double angular = curr_cmd.ang + slip_coefficient_ * curr_cmd.lin;
+    const double vel_left  = (curr_cmd.lin - angular * ws / 2.0)/lwr;
+    const double vel_right = (curr_cmd.lin + angular * ws / 2.0)/rwr;
 
     // Set wheels velocities:
     for (size_t i = 0; i < wheel_joints_size_; ++i)
@@ -690,6 +697,7 @@ namespace diff_drive_controller{
     dynamic_params.left_wheel_radius_multiplier  = config.left_wheel_radius_multiplier;
     dynamic_params.right_wheel_radius_multiplier = config.right_wheel_radius_multiplier;
     dynamic_params.wheel_separation_multiplier   = config.wheel_separation_multiplier;
+    dynamic_params.slip_coefficient              = config.slip_coefficient;
 
     dynamic_params.publish_rate = config.publish_rate;
 
@@ -708,6 +716,7 @@ namespace diff_drive_controller{
     left_wheel_radius_multiplier_  = dynamic_params.left_wheel_radius_multiplier;
     right_wheel_radius_multiplier_ = dynamic_params.right_wheel_radius_multiplier;
     wheel_separation_multiplier_   = dynamic_params.wheel_separation_multiplier;
+    slip_coefficient_              = dynamic_params.slip_coefficient;
 
     publish_period_ = ros::Duration(1.0 / dynamic_params.publish_rate);
     enable_odom_tf_ = dynamic_params.enable_odom_tf;

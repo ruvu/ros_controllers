@@ -144,8 +144,9 @@ namespace diff_drive_controller
      * \param wheel_separation   Separation between left and right wheels [m]
      * \param left_wheel_radius  Left wheel radius [m]
      * \param right_wheel_radius Right wheel radius [m]
+     * \param slip_coefficient   Rotational velocity correction coefficient for skid steer (0 means direct drive) [-]
      */
-    void setWheelParams(double wheel_separation, double left_wheel_radius, double right_wheel_radius);
+    void setWheelParams(double wheel_separation, double left_wheel_radius, double right_wheel_radius, double slip_coefficient_);
 
     /**
      * \brief Velocity rolling window size setter
@@ -194,8 +195,9 @@ namespace diff_drive_controller
     double wheel_separation_;
     double left_wheel_radius_;
     double right_wheel_radius_;
+    double slip_coefficient_;
 
-    /// Previou wheel position/state [rad]:
+    /// Previous wheel position/state [rad]:
     double left_wheel_old_pos_;
     double right_wheel_old_pos_;
 
